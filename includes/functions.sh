@@ -178,6 +178,7 @@ installtask() {
 		installpackages)
 			dist_codename=$(lsb_release -cs)
 			dist_id=$(lsb_release -is)
+			PHPMAILMIMEDECODE="php-mail-mimedecode"
 			if [[ ! -z $(apt-cache search --names-only '^php5-cli$') ]]; then
 				PHP="php5"
 				PHPV="5"
@@ -201,9 +202,10 @@ installtask() {
 					OPENJDK="openjdk-7"
 					JETTY_NAME="jetty8"
 				elif [[ ${dist_codename} == "stretch" ]]; then
-					#Debian 9 will not start Postfix or Dovecot when SSLv2 parameter is used
+					#Debian 9 will not start Postfix or Dovecot when SSLv2 parameter is used. There is no support for php-mail-mimedecode
 					sed -i 's/!SSLv2, //g' ../postfix/main.cf
 					sed -i 's/!SSLv2//g' ../dovecot/conf/dovecot.conf
+					PHPMAILMIMEDECODE=""
 					if [[ ${httpd_platform} == "apache2" ]]; then
 						WEBSERVER_BACKEND="apache2 apache2-utils libapache2-mod-${PHP}"
 					else
@@ -255,7 +257,7 @@ installtask() {
 					DATABASE_BACKEND="mysql-client mysql-server"
 					# In Debian 9 the mysql-client package was renamed to default-mysql-client
 					if [[ ${dist_codename} == "stretch" ]]; then
-						DATABASE_BACKEND="default-mysql-client mysql-server"
+						DATABASE_BACKEND="default-mysql-client default-mysql-server"
 					fi
 				fi
 			else
@@ -263,16 +265,12 @@ installtask() {
 			fi
 			[[ -z ${APT} ]] && APT="apt-get --force-yes"
 DEBIAN_FRONTEND=noninteractive ${APT} -y install dnsutils sudo zip bzip2 unzip unrar-free curl rrdtool mailgraph fcgiwrap spawn-fcgi python-setuptools libmail-spf-perl libmail-dkim-perl file bsd-mailx \
-openssl php-auth-sasl php-http-request php-mail php-mail-mime php-mail-mimedecode php-net-dime php-net-smtp \
+openssl php-auth-sasl php-http-request php-mail php-mail-mime ${PHPMAILMIMEDECODE} php-net-dime php-net-smtp \
 php-net-socket php-net-url php-pear php-soap ${PHP} ${PHP}-cli ${PHP}-common ${PHP}-curl ${PHP}-gd ${PHP}-imap \
 ${PHP}-intl ${PHP}-xsl ${PHP}-mcrypt ${PHP}-mysql libawl-php ${PHP}-xmlrpc ${DATABASE_BACKEND} ${WEBSERVER_BACKEND} mailutils pyzor razor \
 postfix postfix-mysql postfix-pcre postgrey pflogsumm spamassassin spamc sa-compile libdbd-mysql-perl opendkim opendkim-tools clamav-daemon \
 python-magic liblockfile-simple-perl libdbi-perl libmime-base64-urlsafe-perl libtest-tempdir-perl liblogger-syslog-perl \
 ${OPENJDK}-jre-headless libcurl4-openssl-dev libexpat1-dev solr-jetty > /dev/null
-			#Debian 9 does not support "php-mail-mimedecode". Push package out of array
-			if [[ ${dist_codename} == "stretch" ]]; then
-				DEBIAN_FRONTEND=(${DEBIAN_FRONTEND[@]/php-mail-mimedecode})
-			fi
 			if [ "$?" -ne "0" ]; then
 				echo "$(redb [ERR]) - Package installation failed:"
 				tail -n 20 /var/log/dpkg.log
