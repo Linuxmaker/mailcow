@@ -203,8 +203,7 @@ installtask() {
 				else
 					echo "$(redb [ERR]) - Your Debian distribution is currently not supported"
 					exit 1
-				fi
-				if [[ ${dist_codename} == "stretch" ]]; then
+				elif [[ ${dist_codename} == "stretch" ]]; then
 					#Debian 9 will not start Postfix or Dovecot when SSLv2 parameter is used
 					sed -i 's/!SSLv2, //g' ../postfix/main.cf
 					sed -i 's/!SSLv2//g' ../dovecot/conf/dovecot.conf
