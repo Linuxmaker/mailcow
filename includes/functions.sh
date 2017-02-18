@@ -203,8 +203,8 @@ installtask() {
 					JETTY_NAME="jetty8"
 				elif [[ ${dist_codename} == "stretch" ]]; then
 					#Debian 9 will not start Postfix or Dovecot when SSLv2 parameter is used. There is no support for php-mail-mimedecode
-					sed -i 's/!SSLv2, //g' ../postfix/main.cf
-					sed -i 's/!SSLv2//g' ../dovecot/conf/dovecot.conf
+					sed -i 's/!SSLv2, //g' ./postfix/conf/main.cf
+					sed -i 's/!SSLv2//g' ./dovecot/conf/dovecot.conf
 					PHPMAILMIMEDECODE=""
 					if [[ ${httpd_platform} == "apache2" ]]; then
 						WEBSERVER_BACKEND="apache2 apache2-utils libapache2-mod-${PHP}"
