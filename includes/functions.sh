@@ -257,6 +257,10 @@ installtask() {
 					DATABASE_BACKEND="mariadb-client mariadb-server"
 				else
 					DATABASE_BACKEND="mysql-client mysql-server"
+					# In Debian 9 the mysql-client package was renamed to default-mysql-client
+					if [[ ${dist_codename} == "stretch" ]]; then
+						DATABASE_BACKEND="default-mysql-client mysql-server"
+					fi
 				fi
 			else
 				DATABASE_BACKEND=""
