@@ -204,6 +204,21 @@ installtask() {
 					echo "$(redb [ERR]) - Your Debian distribution is currently not supported"
 					exit 1
 				fi
+				if [[ ${dist_codename} == "stretch" ]]; then
+					#Debian 9 will not start Postfix or Dovecot when SSLv2 parameter is used
+					sed -i 's/!SSLv2, //g' ../postfix/main.cf
+					sed -i 's/!SSLv2//g' ../dovecot/conf/dovecot.conf
+					if [[ ${httpd_platform} == "apache2" ]]; then
+						WEBSERVER_BACKEND="apache2 apache2-utils libapache2-mod-${PHP}"
+					else
+						WEBSERVER_BACKEND="nginx-extras ${PHP}-fpm"
+					fi
+					OPENJDK="openjdk-8"
+					JETTY_NAME="jetty9"
+				else
+					echo "$(redb [ERR]) - Your Debian distribution is currently not supported"
+					exit 1
+				fi
 			elif [[ ${dist_id} == "Ubuntu" ]]; then
 				if [[ ${dist_codename} == "trusty" ]]; then
 					if [[ ${httpd_platform} == "apache2" ]]; then
@@ -254,6 +269,10 @@ ${PHP}-intl ${PHP}-xsl ${PHP}-mcrypt ${PHP}-mysql libawl-php ${PHP}-xmlrpc ${DAT
 postfix postfix-mysql postfix-pcre postgrey pflogsumm spamassassin spamc sa-compile libdbd-mysql-perl opendkim opendkim-tools clamav-daemon \
 python-magic liblockfile-simple-perl libdbi-perl libmime-base64-urlsafe-perl libtest-tempdir-perl liblogger-syslog-perl \
 ${OPENJDK}-jre-headless libcurl4-openssl-dev libexpat1-dev solr-jetty > /dev/null
+			#Debian 9 does not support "php-mail-mimedecode". Push package out of array
+			if [[ ${dist_codename} == "stretch" ]]; then
+				DEBIAN_FRONTEND=(${DEBIAN_FRONTEND[@]/php-mail-mimedecode})
+			fi
 			if [ "$?" -ne "0" ]; then
 				echo "$(redb [ERR]) - Package installation failed:"
 				tail -n 20 /var/log/dpkg.log
